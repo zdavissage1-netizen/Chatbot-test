@@ -1,8 +1,11 @@
 import type { NextConfig } from "next";
 import { env } from "process";
 
+const devOrigin = env.REPLIT_DOMAINS?.split(",")[0]?.trim();
+
 const nextConfig: NextConfig = {
-  allowedDevOrigins: [env.REPLIT_DOMAINS.split(",")[0]],
+  ...(devOrigin ? { allowedDevOrigins: [devOrigin] } : {}),
+  poweredByHeader: false,
 };
 
-module.exports = nextConfig;
+export default nextConfig;

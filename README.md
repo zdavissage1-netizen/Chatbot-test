@@ -1,24 +1,39 @@
-Welcome to the NextJS base template bootstrapped using the `create-next-app`. This template supports TypeScript, but you can use normal JavaScript as well.
+# Aurora
 
-## Getting Started
+A local-first AI chat workspace built with Next.js 15 and React 19. Aurora streams answers from LiteRouter's free DeepSeek models, renders Markdown with custom syntax highlighting, exposes reasoning traces, and keeps conversation history in the browser.
 
-Hit the run button to start the development server.
+## Routes
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+- `/` — animated landing page with features, models, and privacy sections.
+- `/new` — fresh chat workspace. The first message creates `/c/<id>`.
+- `/c/<id>` — a local conversation.
+- `/terms` and `/privacy` — animated legal pages.
+- `/api/chat` — NDJSON streaming proxy to LiteRouter with a deterministic demo fallback.
+- `/api/models` — free model catalogue with curated fallback.
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on `/api/hello`. This endpoint can be edited in `pages/api/hello.ts`.
+## Run locally
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+```bash
+npm install
+npm run dev
+```
 
-## Learn More
+The app runs at `http://localhost:5000`. Production uses `npm run build` then `npm start`, also on port 5000.
 
-To learn more about Next.js, take a look at the following resources:
+## Configuration
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Add these values to `.env.local` (server-only):
 
-## Productionizing your Next App
+```bash
+LITEROUTER_API_KEY=your_key
+LITEROUTER_BASE_URL=https://api.literouter.com/v1
+LITEROUTER_MODEL=deepseek-v4.1-flash:free
+```
 
-To make your next App run smoothly in production make sure to deploy your project with [Repl Deployments](https://docs.replit.com/hosting/deployments/about-deployments)!
+Without a key, the app automatically switches to its local demo stream so the interface remains usable.
 
-You can also produce a production build by running `npm run build` and [changing the run command](https://docs.replit.com/programming-ide/configuring-repl#run) to `npm run start`.
+## Notes
+
+- Chat history, theme, preferences, and the selected model live in `localStorage`; there is no account or server-side database.
+- The API key is read only by the server route and is never sent to the browser.
+- To clear local data, use the sidebar's clear-history action or remove the `aurora.*` keys from browser storage.
