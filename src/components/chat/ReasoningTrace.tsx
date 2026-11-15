@@ -46,7 +46,7 @@ export default function ReasoningTrace({
       : "reading the prompt"
     : seconds
       ? `${seconds}s`
-      : `${reasoning.length.toLocaleString()} chars`;
+      : `${reasoning.length.toLocaleString("en-US")} chars`;
 
   return (
     <section className={`reasoning${open ? " is-open" : ""}${streaming && !contentStarted ? " is-thinking" : ""}`}>

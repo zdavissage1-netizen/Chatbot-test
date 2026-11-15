@@ -184,7 +184,7 @@ export default function MessageItem({
           ) : null}
           {message.usage?.completionTokens ? (
             <span className="message-stat">
-              {message.usage.completionTokens.toLocaleString()} tokens
+              {message.usage.completionTokens.toLocaleString("en-US")} tokens
             </span>
           ) : null}
         </footer>

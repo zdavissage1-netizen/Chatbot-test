@@ -167,7 +167,7 @@ export async function readFiles(
 export function pastedTextAttachment(text: string): Attachment {
   const content = text.slice(0, MAX_TEXT_CHARS);
   return makeAttachment({
-    name: `Pasted text · ${content.length.toLocaleString()} chars`,
+    name: `Pasted text · ${content.length.toLocaleString("en-US")} chars`,
     size: text.length,
     type: "text/plain",
     kind: "text",

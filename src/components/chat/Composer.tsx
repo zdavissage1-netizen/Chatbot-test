@@ -71,7 +71,7 @@ export default function Composer({
       return;
     }
     if (trimmed.length > MAX_MESSAGE_CHARS) {
-      notify(`Messages are limited to ${MAX_MESSAGE_CHARS.toLocaleString()} characters.`, "error");
+      notify(`Messages are limited to ${MAX_MESSAGE_CHARS.toLocaleString("en-US")} characters.`, "error");
       return;
     }
     onSend(trimmed, attachments);
@@ -99,7 +99,7 @@ export default function Composer({
         return;
       }
       setAttachments((prev) => [...prev, pastedTextAttachment(pasted)]);
-      notify(`Long paste moved into a text attachment (${pasted.length.toLocaleString()} chars).`, "info");
+      notify(`Long paste moved into a text attachment (${pasted.length.toLocaleString("en-US")} chars).`, "info");
     }
   };
 
@@ -210,7 +210,7 @@ export default function Composer({
           <div className="composer-actions">
             {showCounter ? (
               <span className={`char-count${fill > 95 ? " is-warn" : ""}`}>
-                {text.length.toLocaleString()} / {MAX_MESSAGE_CHARS.toLocaleString()}
+                {text.length.toLocaleString("en-US")} / {MAX_MESSAGE_CHARS.toLocaleString("en-US")}
               </span>
             ) : null}
             {streaming ? (

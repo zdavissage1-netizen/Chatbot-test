@@ -155,8 +155,8 @@ export default function InfoPanel({
           </h3>
           <div className="info-stats">
             <Stat label="Messages" value={String(stats.messages)} hint={`${stats.userMessages} you / ${stats.assistantMessages} Aurora`} />
-            <Stat label="Words" value={stats.words.toLocaleString()} />
-            <Stat label="Est. tokens" value={stats.tokens.toLocaleString()} />
+            <Stat label="Words" value={stats.words.toLocaleString("en-US")} />
+            <Stat label="Est. tokens" value={stats.tokens.toLocaleString("en-US")} />
             <Stat label="Attachments" value={String(stats.attachments)} hint={formatBytes(stats.attachmentBytes)} />
           </div>
           <div className="meter">
@@ -168,7 +168,7 @@ export default function InfoPanel({
               <span className={`meter-fill${contextPct > 85 ? " is-hot" : ""}`} style={{ width: `${Math.max(2, contextPct)}%` }} />
             </div>
             <p className="meter-foot">
-              ~{context.toLocaleString()} of {MAX_CONTEXT_CHARS.toLocaleString()} chars · oldest turns are trimmed first
+              ~{context.toLocaleString("en-US")} of {MAX_CONTEXT_CHARS.toLocaleString("en-US")} chars · oldest turns are trimmed first
             </p>
           </div>
         </section>
