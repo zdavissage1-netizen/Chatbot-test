@@ -2485,7 +2485,7 @@ html[data-theme="light"] .info-panel {
     top: 0;
     right: 0;
     bottom: 0;
-    z-index: 60;
+    z-index: 70;
     width: 340px;
     max-width: 92vw;
     opacity: 1;

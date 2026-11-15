@@ -504,13 +504,13 @@ export default function ChatWorkspace({ conversationId }: ChatWorkspaceProps) {
       data-focus={focusMode ? "true" : "false"}
       data-sidebar={mobileSidebar ? "open" : "closed"}
     >
+      <button
+        type="button"
+        className="drawer-scrim sidebar-scrim"
+        aria-label="Close sidebar"
+        onClick={() => setMobileSidebar(false)}
+      />
       <div className="sidebar-shell">
-        <button
-          type="button"
-          className="drawer-scrim sidebar-scrim"
-          aria-label="Close sidebar"
-          onClick={() => setMobileSidebar(false)}
-        />
         <Sidebar
           conversations={conversations}
           activeId={activeId}
@@ -531,8 +531,14 @@ export default function ChatWorkspace({ conversationId }: ChatWorkspaceProps) {
         <ChatHeader
           title={active?.title ?? "New conversation"}
           onRename={(title) => (active ? rename(active.id, title) : undefined)}
-          onMenu={() => setMobileSidebar((prev) => !prev)}
-          onToggleInfo={() => setInfoOpen((prev) => !prev)}
+          onMenu={() => {
+            setInfoOpen(false);
+            setMobileSidebar((prev) => !prev);
+          }}
+          onToggleInfo={() => {
+            setMobileSidebar(false);
+            setInfoOpen((prev) => !prev);
+          }}
           onToggleFocus={() => setFocusMode((prev) => !prev)}
           onCopyLink={copyShareLink}
           infoOpen={infoOpen}
@@ -578,13 +584,13 @@ export default function ChatWorkspace({ conversationId }: ChatWorkspaceProps) {
         />
       </main>
 
+      <button
+        type="button"
+        className="drawer-scrim info-scrim"
+        aria-label="Close info panel"
+        onClick={() => setInfoOpen(false)}
+      />
       <div className="info-shell">
-        <button
-          type="button"
-          className="drawer-scrim info-scrim"
-          aria-label="Close info panel"
-          onClick={() => setInfoOpen(false)}
-        />
         <InfoPanel
           conversation={active}
           models={models}
