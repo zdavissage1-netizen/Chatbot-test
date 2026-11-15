@@ -1,4 +1,4 @@
-import React, { type ReactNode } from "react";
+import React, { type ReactNode, useState } from "react";
 
 const BR_SENTINEL = "\uE000";
 
@@ -22,6 +22,37 @@ function safeUrl(raw: string, forImage = false): string | null {
   if (/^(https?:|mailto:)/i.test(url)) return url;
   if (/^#|^\/(?!\/)|^\.{1,2}\//.test(url)) return url;
   return null;
+}
+
+function MarkdownImage({ src, alt, title }: { src: string; alt: string; title?: string }) {
+  const [failed, setFailed] = useState(false);
+
+  if (failed) {
+    return (
+      <span className="md-image-fallback" role="img" aria-label={alt || "Image unavailable"}>
+        <span>{alt ? `Image unavailable: ${alt}` : "Image unavailable."}</span>
+        <a href={src} target="_blank" rel="noopener noreferrer">
+          Open image
+        </a>
+      </span>
+    );
+  }
+
+  return (
+    <span className="md-image-wrap">
+      {/* Arbitrary Markdown image hosts cannot use Next Image's static host allowlist. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={alt}
+        title={title}
+        loading="lazy"
+        decoding="async"
+        className="md-image"
+        onError={() => setFailed(true)}
+      />
+    </span>
+  );
 }
 
 function pushText(nodes: ReactNode[], value: string, keyBase: string) {
@@ -90,26 +121,21 @@ function renderNodes(text: string, keyPrefix: string, depth: number): ReactNode[
     }
 
     if (char === "!" && prepared[i + 1] === "[") {
-      const match = /!\[([^\]]*)\]\(\s*([^\s)]+)(?:\s+["']([^"']*)["'])?\s*\)/y;
+      const match =
+        /!\[([^\]]*)\]\(\s*(?:<([^>\s]+)>|((?:\\.|[^()\s]|(?:\([^()\s]*\)))+))(?:\s+(?:"([^"]*)"|'([^']*)'))?\s*\)/y;
       match.lastIndex = i;
       const found = match.exec(prepared);
       if (found) {
         flush();
-        const src = safeUrl(found[2], true);
+        const src = safeUrl(found[2] ?? found[3], true);
         if (src) {
           nodes.push(
-            React.createElement(
-              "span",
-              { key: nextKey("img"), className: "md-image-wrap" },
-              React.createElement("img", {
-                src,
-                alt: found[1] || "",
-                title: found[3] || undefined,
-                loading: "lazy",
-                decoding: "async",
-                className: "md-image",
-              }),
-            ),
+            React.createElement(MarkdownImage, {
+              key: nextKey("img"),
+              src,
+              alt: decodeEntities(found[1] || ""),
+              title: found[4] ?? found[5],
+            }),
           );
         } else {
           nodes.push(React.createElement("span", { key: nextKey("img-alt") }, found[0]));

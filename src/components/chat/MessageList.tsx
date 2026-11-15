@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { Message, ViewPreferences } from "@/lib/types";
 import MessageItem from "./MessageItem";
 import { ArrowDownIcon } from "@/components/ui/icons";
@@ -35,8 +35,8 @@ export default function MessageList({
   onRetry,
 }: MessageListProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
   const pinnedRef = useRef(true);
+  const resizeFrameRef = useRef<number | null>(null);
   const [showJump, setShowJump] = useState(false);
   const last = messages[messages.length - 1];
   const lastLength = last?.content.length ?? 0;
@@ -49,18 +49,36 @@ export default function MessageList({
     setShowJump(false);
   };
 
-  useEffect(() => {
-    const frame = window.requestAnimationFrame(() => scrollToBottom("auto"));
-    return () => window.cancelAnimationFrame(frame);
-  }, []);
-
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (pinnedRef.current) {
-      scrollToBottom(streamingId ? "auto" : "smooth");
+      scrollToBottom("auto");
     } else {
       setShowJump(true);
     }
   }, [messages.length, lastLength, streamingId]);
+
+  useEffect(() => {
+    const inner = scrollRef.current?.querySelector(".messages-inner");
+    if (!inner || typeof ResizeObserver === "undefined") return;
+
+    const observer = new ResizeObserver(() => {
+      if (!pinnedRef.current || resizeFrameRef.current !== null) return;
+      resizeFrameRef.current = window.requestAnimationFrame(() => {
+        resizeFrameRef.current = null;
+        const scroller = scrollRef.current;
+        if (pinnedRef.current && scroller) scroller.scrollTop = scroller.scrollHeight;
+      });
+    });
+    observer.observe(inner);
+
+    return () => {
+      observer.disconnect();
+      if (resizeFrameRef.current !== null) {
+        window.cancelAnimationFrame(resizeFrameRef.current);
+        resizeFrameRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!streamingId) setShowJump(false);
@@ -102,7 +120,7 @@ export default function MessageList({
               </React.Fragment>
             );
           })}
-          <div ref={bottomRef} className="messages-end" />
+          <div className="messages-end" />
         </div>
       </div>
       <button
