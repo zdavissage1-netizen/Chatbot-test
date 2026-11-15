@@ -91,7 +91,7 @@ export default function ChatWorkspace({ conversationId }: ChatWorkspaceProps) {
     setOrigin(window.location.origin);
     const storedModel = readString(MODEL_KEY);
     if (storedModel) setDraftModel(storedModel);
-    if (window.matchMedia("(min-width: 1181px)").matches) setInfoOpen(true);
+    if (window.matchMedia("(min-width: 1281px)").matches) setInfoOpen(true);
     const storedPrefs = readJSON<ViewPreferences>(PREFS_KEY, DEFAULT_PREFS);
     setPrefs({ ...DEFAULT_PREFS, ...storedPrefs });
     prefsLoaded.current = true;
