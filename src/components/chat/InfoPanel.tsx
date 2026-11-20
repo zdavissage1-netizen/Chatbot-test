@@ -239,7 +239,7 @@ export default function InfoPanel({
             </button>
           </div>
               <p className="info-note">
-                <LockIcon size={12} /> The link points to a conversation in this session. History is not saved.
+                <LockIcon size={12} /> This link points to a conversation stored in this browser (localStorage).
               </p>
         </section>
 
@@ -372,7 +372,7 @@ export default function InfoPanel({
               <span className={`meter-fill${storagePct > 85 ? " is-hot" : ""}`} style={{ width: `${Math.max(3, storagePct)}%` }} />
             </div>
             <p className="meter-foot">
-              Attachments use {formatBytes(attachmentBytes)}. History is not saved to this browser.
+              Attachments use {formatBytes(attachmentBytes)}. History is saved in this browser (localStorage).
             </p>
           </div>
         </section>

@@ -10,7 +10,7 @@ import {
   friendlyModelName,
   FALLBACK_MODEL,
 } from "@/lib/chat";
-import { estimateConversationBytes, readJSON, readString, writeJSON, writeString, PREFS_KEY, MODEL_KEY, UNOROUTER_KEY } from "@/lib/storage";
+import { estimateConversationBytes, persistConversations, readJSON, readString, writeJSON, writeString, PREFS_KEY, MODEL_KEY, UNOROUTER_KEY } from "@/lib/storage";
 import { useConversations } from "@/hooks/useConversations";
 import { useModels } from "@/hooks/useModels";
 import { useIsMobile } from "@/hooks/useMediaQuery";
@@ -140,6 +140,7 @@ export default function ChatWorkspace({ conversationId }: ChatWorkspaceProps) {
     return () => {
       mountedRef.current = false;
       abortRef.current?.abort();
+      persistConversations(conversationsRef.current, activeIdRef.current);
     };
   }, []);
 
