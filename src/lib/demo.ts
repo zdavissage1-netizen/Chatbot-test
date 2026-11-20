@@ -55,7 +55,7 @@ Everything below is parsed by a custom renderer — no HTML injection, no layout
 
 This is **bold**, this is _italic_, this is ~~struck through~~, this is ==highlighted==, and this is \`inline code\`.
 
-Inline links stay safe: [Next.js documentation](https://nextjs.org/docs), [LiteRouter](https://literouter.com), and an autolink <https://nextjs.org>. A bare URL also works: https://example.com/path?q=aurora.
+Inline links stay safe: [Next.js documentation](https://nextjs.org/docs), [UnoRouter](https://unorouter.com), and an autolink <https://nextjs.org>. A bare URL also works: https://example.com/path?q=aurora.
 
 Hard breaks are respected.  
 This line begins after a hard break.
@@ -124,7 +124,7 @@ export function append(stream: string[], delta: string): string[] {
 \`\`\`json
 {
   "schema": "aurora.conversation/1",
-  "model": "deepseek-v4.1-flash:free",
+  "model": "gpt-oss-120b:free",
   "streaming": true,
   "usage": { "prompt_tokens": 128, "completion_tokens": 420 }
 }
@@ -202,7 +202,7 @@ services:
     ports:
       - "5000:5000"
     environment:
-      LITEROUTER_MODEL: deepseek-v4.1-flash:free
+      UNOROUTER_MODEL: gpt-oss-120b:free
       NODE_ENV: production
 \`\`\`
 
@@ -310,7 +310,7 @@ for await (const frame of stream) {
 
 ## Provider fallback
 
-When no API key is present, the server streams a local demo reply. With a key, it proxies LiteRouter's OpenAI-compatible endpoint and forwards \`reasoning_content\` when the model exposes it.`;
+When no API key is present, the server streams a local demo reply. With a key, it proxies UnoRouter's OpenAI-compatible endpoint and forwards \`reasoning_content\` when the model exposes it.`;
 
 function sanitizeEcho(prompt: string): string {
   return prompt

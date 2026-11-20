@@ -45,7 +45,7 @@ export const TERMS: LegalDocument = {
       icon: "sparkles",
       paragraphs: [
         "Aurora is a chat interface for large language models. It renders Markdown, highlights code, streams responses, stores conversations in your browser, and lets you export what you create.",
-        "Aurora is not a model provider. When a live model is selected, your prompt is sent through the configured LiteRouter endpoint to the model you chose. When the local demo model is selected, no prompt leaves your browser beyond the app server that generates the demo response.",
+        "Aurora is not a model provider. When a live model is selected, your prompt is sent through the configured UnoRouter endpoint to the model you chose. When the local demo model is selected, no prompt leaves your browser beyond the app server that generates the demo response.",
       ],
       bullets: [
         "The interface and storage layer run in your browser.",
@@ -107,7 +107,7 @@ export const TERMS: LegalDocument = {
       title: "Model providers and network requests",
       icon: "globe",
       paragraphs: [
-        "Live responses are routed through LiteRouter to the model you select. Your use of those models is also subject to the provider's terms and privacy practices. Aurora does not control third-party availability, latency, or output.",
+        "Live responses are routed through UnoRouter to the model you select. Your use of those models is also subject to the provider's terms and privacy practices. Aurora does not control third-party availability, latency, or output.",
         "If a live model is unavailable, Aurora may fall back to a local demo response and label it clearly. A fallback is not a guarantee of service continuity.",
       ],
     },
@@ -228,7 +228,7 @@ export const PRIVACY: LegalDocument = {
       title: "When data leaves your browser",
       icon: "globe",
       paragraphs: [
-        "When you send a message with a live model selected, the conversation context, relevant text-attachment excerpts, and any attached images are sent to the Aurora server, which forwards them to LiteRouter and the chosen model provider.",
+        "When you send a message with a live model selected, the conversation context, relevant text-attachment excerpts, and any attached images are sent to the Aurora server, which forwards them to UnoRouter and the chosen model provider.",
         "Reasoning text may be returned by models that expose it. It is displayed in the app and stored with the message unless you delete the thread.",
       ],
       bullets: [
@@ -251,7 +251,7 @@ export const PRIVACY: LegalDocument = {
       title: "Model provider processing",
       icon: "server",
       paragraphs: [
-        "LiteRouter acts as a gateway to third-party models. The provider that runs your selected model may retain prompts and outputs according to its own retention and training policies. Aurora cannot guarantee how a provider handles data.",
+        "UnoRouter acts as a gateway to third-party models. The provider that runs your selected model may retain prompts and outputs according to its own retention and training policies. Aurora cannot guarantee how a provider handles data.",
         "Free model tiers may have different retention or usage terms than paid tiers. Review the provider's documentation before sending confidential material.",
       ],
       note: "Do not send secrets, credentials, regulated health data, or client-confidential information to a model you do not trust.",

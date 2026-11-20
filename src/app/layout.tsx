@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     "Markdown",
     "syntax highlighting",
     "Next.js",
-    "LiteRouter",
+    "UnoRouter",
   ],
   icons: {
     icon: "/favicon.ico",

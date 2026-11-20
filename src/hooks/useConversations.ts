@@ -2,11 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Conversation } from "@/lib/types";
-import {
-  loadConversations,
-  persistConversations,
-  removeConversationStorage,
-} from "@/lib/storage";
+import { removeConversationStorage } from "@/lib/storage";
 import { createConversation } from "@/lib/chat";
 
 type Tone = "info" | "success" | "error" | "busy";
@@ -14,7 +10,7 @@ type Notify = (message: string, tone?: Tone) => void;
 
 export function useConversations({
   routeId,
-  preserveId,
+  preserveId: _preserveId,
   notify,
   defaultModel,
 }: {
@@ -27,7 +23,6 @@ export function useConversations({
   const [ready, setReady] = useState(false);
   const notifyRef = useRef(notify);
   const defaultModelRef = useRef(defaultModel);
-  const trimmedRef = useRef(false);
 
   useEffect(() => {
     notifyRef.current = notify;
@@ -38,8 +33,7 @@ export function useConversations({
   }, [defaultModel]);
 
   useEffect(() => {
-    const loaded = loadConversations();
-    setItems(loaded);
+    setItems([]);
     setReady(true);
   }, []);
 
@@ -60,37 +54,7 @@ export function useConversations({
     });
   }, [ready, routeId]);
 
-  useEffect(() => {
-    if (!ready) return;
-    const timer = window.setTimeout(() => {
-      const result = persistConversations(items, preserveId);
-      if (!result.ok) {
-        notifyRef.current(
-          "Browser storage is full. Export a conversation, then remove older threads.",
-          "error",
-        );
-        return;
-      }
-      if (result.droppedConversations || result.droppedPayloads) {
-        if (!trimmedRef.current) {
-          trimmedRef.current = true;
-          const parts: string[] = [];
-          if (result.droppedConversations) {
-            parts.push(`${result.droppedConversations} older conversation${result.droppedConversations > 1 ? "s" : ""}`);
-          }
-          if (result.droppedPayloads) {
-            parts.push("large attachment previews");
-          }
-          notifyRef.current(`Storage was full — removed ${parts.join(" and ")}. Export important threads often.`, "error");
-          window.setTimeout(() => {
-            trimmedRef.current = false;
-          }, 6000);
-        }
-        setItems(result.conversations);
-      }
-    }, 480);
-    return () => window.clearTimeout(timer);
-  }, [items, ready, preserveId]);
+  void _preserveId;
 
   const create = useCallback((model?: string) => {
     const conversation = createConversation(model ?? defaultModelRef.current);

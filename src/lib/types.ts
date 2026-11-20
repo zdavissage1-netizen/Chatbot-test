@@ -51,11 +51,14 @@ export interface ModelInfo {
   vendor: string;
   description?: string;
   context?: number;
+  maxOutput?: number;
   reasoning?: boolean;
   vision?: boolean;
   free?: boolean;
   recommended?: boolean;
   available?: boolean;
+  inputPrice?: number;
+  outputPrice?: number;
 }
 
 export interface ViewPreferences {

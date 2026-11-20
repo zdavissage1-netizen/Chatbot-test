@@ -5,20 +5,19 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const PRIORITY = [
+  "gpt-oss-120b:free",
   "deepseek-v4.1-flash:free",
   "deepseek-v4.1-flash-1017:free",
-  "deepseek-v4.1-flash-cheap:free",
   "deepseek-v4-flash:free",
   "deepseek-v3.2:free",
   "glm-5.3-flash:free",
   "qwen3-coder-next:free",
-  "gpt-oss-120b:free",
   "minimax-m2.7:free",
   "qwen3.8-27b:free",
   "deepseek-v3.1:free",
 ];
 
-const EXCLUDE = /heretic|roleplay|uncensored|image|embedding|whisper|tts|moderation/i;
+const EXCLUDE = /embedding|whisper|tts|moderation/i;
 
 interface Cache {
   at: number;
@@ -63,73 +62,94 @@ const CURATED_FALLBACK: ModelInfo[] = [
     free: true,
     available: true,
   },
-  {
-    id: "gpt-oss-120b:free",
-    name: "GPT OSS 120B",
-    vendor: "OpenAI · Free",
-    description: "Open-weight reasoning model with visible chain-of-thought.",
-    context: 131_072,
-    reasoning: true,
-    vision: false,
-    free: true,
-    available: true,
-  },
 ];
 
-function displayVendor(ownedBy: string | undefined): string {
-  if (!ownedBy) return "LiteRouter · Free";
+function titleize(value: string): string {
+  return value
+    .replace(/[-_]/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function displayVendor(ownedBy: string | undefined, isFree: boolean): string {
+  const suffix = isFree ? " · Free" : " · UnoRouter";
+  if (!ownedBy) return `UnoRouter${suffix}`;
   const pretty = ownedBy
     .replace(/-ai$/, "")
-    .replace(/^z-ai$/, "Z.ai")
-    .replace(/^openai$/, "OpenAI")
-    .replace(/^deepseek$/, "DeepSeek")
-    .replace(/^qwen$/, "Qwen")
-    .replace(/^meta$/, "Meta")
-    .replace(/^mistralai$/, "Mistral")
-    .replace(/^minimax$/, "MiniMax")
-    .replace(/^google$/, "Google");
-  return `${pretty.charAt(0).toUpperCase()}${pretty.slice(1)} · Free`;
+    .replace(/^z-ai$/i, "Z.ai")
+    .replace(/^openai$/i, "OpenAI")
+    .replace(/^deepseek$/i, "DeepSeek")
+    .replace(/^qwen$/i, "Qwen")
+    .replace(/^meta$/i, "Meta")
+    .replace(/^mistralai$/i, "Mistral")
+    .replace(/^minimax$/i, "MiniMax")
+    .replace(/^google$/i, "Google");
+  return `${pretty.charAt(0).toUpperCase()}${pretty.slice(1)}${suffix}`;
+}
+
+function toNum(v: unknown): number | undefined {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "string" && v.trim() !== "") {
+    const n = Number(v);
+    if (Number.isFinite(n)) return n;
+  }
+  return undefined;
 }
 
 function toModel(raw: any): ModelInfo | null {
   const id = typeof raw?.id === "string" ? raw.id : "";
-  if (!id || !id.endsWith(":free")) return null;
+  if (!id) return null;
   if (raw?.type && raw.type !== "chat") return null;
   if (EXCLUDE.test(id)) return null;
   if (raw?.endpoints?.chat_completions && raw.endpoints.chat_completions.status !== "supported") {
     return null;
   }
   const capabilities = raw?.capabilities ?? {};
+  const isFree = id.endsWith(":free");
+  const modality = String(raw?.architecture?.modality ?? "").toLowerCase();
+  const inputModalities = Array.isArray(raw?.architecture?.input_modalities)
+    ? raw.architecture.input_modalities.map((m: unknown) => String(m).toLowerCase())
+    : [];
+  const vision = Boolean(capabilities.vision || modality.includes("image") || inputModalities.includes("image"));
+  const pricing = raw?.pricing ?? raw?.endpoint?.pricing ?? {};
+  const inputPrice = toNum(pricing.prompt ?? pricing.input ?? pricing.input_price ?? raw?.input_price);
+  const outputPrice = toNum(pricing.completion ?? pricing.output ?? pricing.output_price ?? raw?.output_price);
+  const maxOutput = toNum(raw?.max_output_tokens ?? raw?.top_provider?.max_completion_tokens ?? raw?.max_completion_tokens);
   return {
     id,
     name:
       raw.display_name ||
-      id
-        .replace(/:free$/, "")
-        .replace(/[-_]/g, " ")
-        .replace(/\b\w/g, (c: string) => c.toUpperCase()),
-    vendor: displayVendor(raw.owned_by),
-    description: typeof raw.description === "string" ? raw.description.slice(0, 220) : undefined,
-    context: typeof raw.context_window === "number" ? raw.context_window : undefined,
-    reasoning: Boolean(capabilities.reasoning),
-    vision: Boolean(capabilities.vision),
-    free: true,
+      raw.name ||
+      titleize(id.replace(/:free$/, "")),
+    vendor: displayVendor(raw.owned_by || raw.provider || raw.top_provider?.name, isFree),
+    description: typeof raw.description === "string" ? raw.description.slice(0, 320) : undefined,
+    context: typeof raw.context_window === "number" ? raw.context_window : toNum(raw?.context_length),
+    maxOutput,
+    reasoning: Boolean(capabilities.reasoning ?? raw?.supported_parameters?.includes?.("reasoning") ?? /reason/i.test(String(raw?.description ?? ""))),
+    vision,
+    free: isFree || raw?.pricing === "free" || raw?.is_free === true,
     recommended: id === FALLBACK_MODEL.id,
-    available: true,
+    available: raw?.available !== false,
+    inputPrice,
+    outputPrice,
   };
 }
 
 function rank(model: ModelInfo): number {
   const index = PRIORITY.indexOf(model.id);
   if (index !== -1) return index;
-  if (model.vision) return 40;
-  if (model.reasoning) return 60;
-  return 100;
+  if (model.id === "aurora-demo") return 200;
+  let score = 100;
+  if (model.recommended) score -= 20;
+  if (model.free) score -= 10;
+  if (model.reasoning) score -= 5;
+  if (model.vision) score -= 3;
+  return score;
 }
 
-export async function GET(): Promise<Response> {
-  const defaultModel = process.env.LITEROUTER_MODEL || FALLBACK_MODEL.id;
-  const key = process.env.LITEROUTER_API_KEY;
+export async function GET(req: Request): Promise<Response> {
+  const providedKey = req.headers.get("x-unorouter-key")?.trim() || "";
+  const defaultModel = (process.env.UNOROUTER_MODEL || process.env.LITEROUTER_MODEL) || FALLBACK_MODEL.id;
+  const key = providedKey || process.env.UNOROUTER_API_KEY || process.env.LITEROUTER_API_KEY;
 
   if (!key) {
     return Response.json({
@@ -139,7 +159,7 @@ export async function GET(): Promise<Response> {
     });
   }
 
-  if (cache && Date.now() - cache.at < CACHE_MS) {
+  if (!providedKey && cache && Date.now() - cache.at < CACHE_MS) {
     return Response.json({
       models: cache.models,
       mode: "live",
@@ -147,7 +167,7 @@ export async function GET(): Promise<Response> {
     });
   }
 
-  const baseUrl = (process.env.LITEROUTER_BASE_URL || "https://api.literouter.com/v1").replace(/\/$/, "");
+  const baseUrl = (process.env.UNOROUTER_BASE_URL || process.env.LITEROUTER_BASE_URL || "https://api.unorouter.com/v1").replace(/\/$/, "");
 
   try {
     const res = await fetch(`${baseUrl}/models`, {
@@ -167,8 +187,7 @@ export async function GET(): Promise<Response> {
         seen.add(m.id);
         return true;
       })
-      .sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name))
-      .slice(0, 28);
+      .sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name));
 
     const withDefault = models.some((m) => m.id === defaultModel)
       ? models
@@ -176,7 +195,9 @@ export async function GET(): Promise<Response> {
           {
             ...FALLBACK_MODEL,
             id: defaultModel,
-            name: defaultModel.replace(/:free$/, ""),
+            name: rawModels.find((m: any) => m?.id === defaultModel)?.display_name || titleize(defaultModel.replace(/:free$/, "")),
+            vendor: defaultModel.endsWith(":free") ? "UnoRouter · Free" : "UnoRouter",
+            free: defaultModel.endsWith(":free"),
           },
           ...models,
         ];
@@ -197,7 +218,7 @@ export async function GET(): Promise<Response> {
       ...withDefault,
     ].map((model) => ({ ...model, recommended: model.id === defaultModel }));
 
-    cache = { at: Date.now(), models: finalModels };
+    if (!providedKey) cache = { at: Date.now(), models: finalModels };
     return Response.json({ models: finalModels, mode: "live", defaultModel });
   } catch {
     const models = [

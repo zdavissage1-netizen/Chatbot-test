@@ -12,7 +12,10 @@ import {
   DatabaseIcon,
   DownloadIcon,
   ExternalIcon,
+  EyeIcon,
+  EyeOffIcon,
   FileIcon,
+  KeyIcon,
   LockIcon,
   ScaleIcon,
   SlidersIcon,
@@ -38,6 +41,8 @@ interface InfoPanelProps {
   onClose: () => void;
   onClearAll: () => void;
   onDeleteConversation: () => void;
+  apiKey?: string;
+  onApiKeyChange?: (value: string) => void;
 }
 
 function Stat({ label, value, hint }: { label: string; value: string; hint?: string }) {
@@ -93,11 +98,14 @@ export default function InfoPanel({
   onClose,
   onClearAll,
   onDeleteConversation,
+  apiKey = "",
+  onApiKeyChange,
 }: InfoPanelProps) {
   const { notify } = useToast();
   const [copied, setCopied] = useState<string | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [showApiKey, setShowApiKey] = useState(false);
 
   const stats = useMemo(() => getConversationStats(conversation), [conversation]);
   const attachments = useMemo(
@@ -142,7 +150,7 @@ export default function InfoPanel({
             <div className="info-conv-copy">
               <h3>{title}</h3>
               <p>
-                {modelLabel} · {mode === "live" ? "LiteRouter" : "Demo"} · updated{" "}
+                {modelLabel} · {mode === "live" ? "UnoRouter" : "Demo"} · updated{" "}
                 {conversation ? relativeTime(conversation.updatedAt) : "—"}
               </p>
             </div>
@@ -175,6 +183,47 @@ export default function InfoPanel({
 
         <section className="info-section">
           <h3 className="info-section-title">
+            <KeyIcon size={14} /> UnoRouter API key
+          </h3>
+          <div className="share-box">
+            <input
+              className="info-input"
+              type={showApiKey ? "text" : "password"}
+              value={apiKey}
+              onChange={(event) => onApiKeyChange?.(event.target.value)}
+              placeholder="sk-... (optional)"
+              autoComplete="off"
+              spellCheck={false}
+              aria-label="UnoRouter API key"
+            />
+            <button
+              type="button"
+              className="icon-btn subtle"
+              onClick={() => setShowApiKey((prev) => !prev)}
+              aria-label={showApiKey ? "Hide API key" : "Show API key"}
+              title={showApiKey ? "Hide" : "Show"}
+            >
+              {showApiKey ? <EyeOffIcon size={15} /> : <EyeIcon size={15} />}
+            </button>
+            {apiKey ? (
+              <button
+                type="button"
+                className="icon-btn subtle"
+                onClick={() => onApiKeyChange?.("")}
+                aria-label="Clear API key"
+                title="Clear"
+              >
+                <XIcon size={15} />
+              </button>
+            ) : null}
+          </div>
+          <p className="info-note">
+            <LockIcon size={12} /> Stored in your browser (localStorage) and sent to this app server to use UnoRouter live models. Clear it to remove; reset/browser data will erase it.
+          </p>
+        </section>
+
+        <section className="info-section">
+          <h3 className="info-section-title">
             <ExternalIcon size={14} /> Share link
           </h3>
           <div className="share-box">
@@ -189,9 +238,9 @@ export default function InfoPanel({
               {copied === "link" ? <CheckIcon size={15} /> : <CopyIcon size={15} />}
             </button>
           </div>
-          <p className="info-note">
-            <LockIcon size={12} /> The link points to a local conversation. History is not uploaded.
-          </p>
+              <p className="info-note">
+                <LockIcon size={12} /> The link points to a conversation in this session. History is not saved.
+              </p>
         </section>
 
         <section className="info-section">
@@ -323,7 +372,7 @@ export default function InfoPanel({
               <span className={`meter-fill${storagePct > 85 ? " is-hot" : ""}`} style={{ width: `${Math.max(3, storagePct)}%` }} />
             </div>
             <p className="meter-foot">
-              Attachments use {formatBytes(attachmentBytes)}. Everything is stored in this browser.
+              Attachments use {formatBytes(attachmentBytes)}. History is not saved to this browser.
             </p>
           </div>
         </section>
@@ -347,7 +396,7 @@ export default function InfoPanel({
             </li>
             <li>
               <span>Provider</span>
-              <strong>{mode === "live" ? "LiteRouter API" : "Local demo"}</strong>
+              <strong>{mode === "live" ? "UnoRouter API" : "Local demo"}</strong>
             </li>
           </ul>
         </section>
@@ -379,7 +428,7 @@ export default function InfoPanel({
             Delete this conversation
           </button>
           <button type="button" className="danger-btn subtle" onClick={() => setConfirmClear(true)}>
-            Clear all local history
+            Clear all conversations
           </button>
         </section>
       </div>
@@ -412,15 +461,15 @@ export default function InfoPanel({
 
       <Modal
         open={confirmClear}
-        title="Clear all history?"
-        description="Every conversation and attachment preview in this browser will be removed. This cannot be undone."
+        title="Clear all conversations?"
+        description="Every conversation and attachment in this session will be removed. This cannot be undone."
         tone="danger"
         size="sm"
         onClose={() => setConfirmClear(false)}
         footer={
           <>
             <button type="button" className="btn ghost" onClick={() => setConfirmClear(false)}>
-              Keep history
+              Keep conversations
             </button>
             <button
               type="button"

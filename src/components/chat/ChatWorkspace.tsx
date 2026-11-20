@@ -10,7 +10,7 @@ import {
   friendlyModelName,
   FALLBACK_MODEL,
 } from "@/lib/chat";
-import { estimateConversationBytes, persistConversations, readJSON, readString, writeJSON, writeString, PREFS_KEY, MODEL_KEY } from "@/lib/storage";
+import { estimateConversationBytes, readJSON, readString, writeJSON, writeString, PREFS_KEY, MODEL_KEY, UNOROUTER_KEY } from "@/lib/storage";
 import { useConversations } from "@/hooks/useConversations";
 import { useModels } from "@/hooks/useModels";
 import { useIsMobile } from "@/hooks/useMediaQuery";
@@ -41,10 +41,11 @@ interface DeleteTarget {
 export default function ChatWorkspace({ conversationId }: ChatWorkspaceProps) {
   const router = useRouter();
   const { notify } = useToast();
-  const { models, mode, loading: modelsLoading, defaultModel } = useModels();
   const isMobile = useIsMobile();
 
   const [draftModel, setDraftModel] = useState(FALLBACK_MODEL.id);
+  const [apiKey, setApiKey] = useState("");
+  const { models, mode, loading: modelsLoading, defaultModel } = useModels(apiKey);
   const [activeId, setActiveId] = useState<string | null>(conversationId ?? null);
   const [streamingId, setStreamingId] = useState<string | null>(null);
   const [infoOpen, setInfoOpen] = useState(false);
@@ -91,10 +92,20 @@ export default function ChatWorkspace({ conversationId }: ChatWorkspaceProps) {
     setOrigin(window.location.origin);
     const storedModel = readString(MODEL_KEY);
     if (storedModel) setDraftModel(storedModel);
+    const storedKey = readString(UNOROUTER_KEY);
+    if (storedKey) setApiKey(storedKey);
     if (window.matchMedia("(min-width: 1281px)").matches) setInfoOpen(true);
     const storedPrefs = readJSON<ViewPreferences>(PREFS_KEY, DEFAULT_PREFS);
     setPrefs({ ...DEFAULT_PREFS, ...storedPrefs });
     prefsLoaded.current = true;
+  }, []);
+
+  const handleApiKeyChange = useCallback((value: string) => {
+    setApiKey(value);
+    if (value) writeString(UNOROUTER_KEY, value);
+    else if (typeof window !== "undefined") {
+      try { window.localStorage.removeItem(UNOROUTER_KEY); } catch {}
+    }
   }, []);
 
   useEffect(() => {
@@ -129,7 +140,6 @@ export default function ChatWorkspace({ conversationId }: ChatWorkspaceProps) {
     return () => {
       mountedRef.current = false;
       abortRef.current?.abort();
-      persistConversations(conversationsRef.current, activeIdRef.current);
     };
   }, []);
 
@@ -137,7 +147,7 @@ export default function ChatWorkspace({ conversationId }: ChatWorkspaceProps) {
   const modelInfo = models.find((m) => m.id === model);
   const modelName = modelInfo?.name ?? friendlyModelName(model, models);
   const visionEnabled = Boolean(modelInfo?.vision);
-  const shareUrl = activeId && origin ? `${origin}/c/${activeId}` : origin;
+  const shareUrl = activeId && origin ? `${origin}/c/${activeId}` : `${origin}/new`;
   const storageBytes = useMemo(() => estimateConversationBytes(conversations), [conversations]);
   const streaming = Boolean(streamingId);
 
@@ -192,6 +202,7 @@ export default function ChatWorkspace({ conversationId }: ChatWorkspaceProps) {
           body: JSON.stringify({
             model: conversation.model,
             conversationId: conversation.id,
+            apiKey: apiKey || undefined,
             messages: context.messages.map((message) => ({
               role: message.role,
               content: message.content,
@@ -347,7 +358,7 @@ export default function ChatWorkspace({ conversationId }: ChatWorkspaceProps) {
         if (mountedRef.current) setStreamingId(null);
       }
     },
-    [notify, update],
+    [apiKey, notify, update],
   );
 
   const sendMessage = useCallback(
@@ -485,7 +496,7 @@ export default function ChatWorkspace({ conversationId }: ChatWorkspaceProps) {
     setActiveId(null);
     setInfoOpen(false);
     router.push("/new");
-    notify("All local conversations cleared.", "success");
+    notify("All conversations cleared.", "success");
   }, [clearAll, notify, router]);
 
   const requestDelete = useCallback((id: string) => {
@@ -606,6 +617,8 @@ export default function ChatWorkspace({ conversationId }: ChatWorkspaceProps) {
           onDeleteConversation={() => {
             if (active) handleDeleteConversation(active.id);
           }}
+          apiKey={apiKey}
+          onApiKeyChange={handleApiKeyChange}
         />
       </div>
 

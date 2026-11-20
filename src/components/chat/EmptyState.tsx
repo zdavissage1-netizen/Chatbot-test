@@ -69,7 +69,7 @@ export default function EmptyState({ onPrompt, modelName, mode }: EmptyStateProp
 
       <p className="empty-kicker">
         <span className="live-dot" />
-        {mode === "live" ? "Connected to LiteRouter" : "Local demo mode"} · {modelName}
+        {mode === "live" ? "Connected to UnoRouter" : "Local demo mode"} · {modelName}
       </p>
       <h1 className="empty-title">
         What should we <span className="gradient-text">explore</span> today?

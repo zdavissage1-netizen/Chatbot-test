@@ -190,3 +190,9 @@ export const KeyIcon = (p: IconProps) => (
 export const UsersIcon = (p: IconProps) => (
   <Icon {...p}><circle cx="9" cy="8" r="3.5" /><path d="M3 20a6 6 0 0 1 12 0M16 5a3 3 0 0 1 0 6M18 20a6 6 0 0 0-3-5.2" /></Icon>
 );
+export const EyeIcon = (p: IconProps) => (
+  <Icon {...p}><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" /><circle cx="12" cy="12" r="3" /></Icon>
+);
+export const EyeOffIcon = (p: IconProps) => (
+  <Icon {...p}><path d="M3 3l18 18M10.6 10.6A3 3 0 0 0 12 15a3 3 0 0 0 2.4-4.4M9.9 5.2A10.9 10.9 0 0 1 12 5c6.5 0 10 7 10 7a17.3 17.3 0 0 1-4.1 4.9M6.6 6.6A17.3 17.3 0 0 0 2 12s3.5 7 10 7a10.8 10.8 0 0 0 4.2-.8" /></Icon>
+);

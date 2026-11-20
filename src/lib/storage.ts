@@ -5,6 +5,7 @@ export const PREFS_KEY = "aurora.prefs.v1";
 export const MODEL_KEY = "aurora.model.v1";
 export const THEME_KEY = "aurora.theme";
 export const UI_KEY = "aurora.ui.v1";
+export const UNOROUTER_KEY = "aurora.unorouter.key";
 
 export interface SaveResult {
   ok: boolean;
@@ -45,7 +46,7 @@ function normalizeConversation(value: unknown): Conversation | null {
     title: typeof value.title === "string" && value.title.trim() ? value.title : "New conversation",
     createdAt: typeof value.createdAt === "number" ? value.createdAt : now,
     updatedAt: typeof value.updatedAt === "number" ? value.updatedAt : now,
-    model: typeof value.model === "string" ? value.model : "deepseek-v4.1-flash:free",
+    model: typeof value.model === "string" ? value.model : "gpt-oss-120b:free",
     messages,
     pinned: Boolean(value.pinned),
   };

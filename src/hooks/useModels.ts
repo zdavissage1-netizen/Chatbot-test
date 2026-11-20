@@ -16,16 +16,19 @@ const FALLBACK: ModelsResponse = {
   defaultModel: FALLBACK_MODEL.id,
 };
 
-export function useModels() {
+export function useModels(apiKey = "") {
   const [data, setData] = useState<ModelsResponse>(FALLBACK);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const controller = new AbortController();
     const timer = window.setTimeout(() => controller.abort(), 8000);
+    setLoading(true);
     const load = async () => {
       try {
-        const res = await fetch("/api/models", { signal: controller.signal, cache: "no-store" });
+        const headers: Record<string, string> = {};
+        if (apiKey && apiKey.trim()) headers["x-unorouter-key"] = apiKey.trim();
+        const res = await fetch("/api/models", { signal: controller.signal, cache: "no-store", headers });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = (await res.json()) as ModelsResponse;
         if (Array.isArray(json.models) && json.models.length) {
@@ -34,9 +37,11 @@ export function useModels() {
             mode: json.mode === "live" ? "live" : "demo",
             defaultModel: json.defaultModel ?? json.models[0].id,
           });
+        } else {
+          setData(FALLBACK);
         }
       } catch {
-        /* keep fallback */
+        setData(FALLBACK);
       } finally {
         window.clearTimeout(timer);
         setLoading(false);
@@ -47,7 +52,7 @@ export function useModels() {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, []);
+  }, [apiKey]);
 
   return { ...data, loading };
 }

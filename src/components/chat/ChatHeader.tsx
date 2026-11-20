@@ -112,7 +112,7 @@ export default function ChatHeader({
             </span>
           )}
           <span className="header-sep" aria-hidden="true">·</span>
-          <span className="header-mode">{mode === "live" ? "Live models" : "Demo mode"}</span>
+          <span className="header-mode">{mode === "live" ? "All models" : "Demo mode"}</span>
         </div>
       </div>
 

@@ -7,6 +7,18 @@ export const MAX_CONTEXT_MESSAGES = 24;
 
 export const MODEL_OPTIONS: ModelInfo[] = [
   {
+    id: "gpt-oss-120b:free",
+    name: "GPT OSS 120B",
+    vendor: "OpenAI · Free",
+    description: "Open-weight reasoning model with visible chain-of-thought.",
+    context: 131_072,
+    reasoning: true,
+    vision: false,
+    free: true,
+    recommended: true,
+    available: true,
+  },
+  {
     id: "deepseek-v4.1-flash:free",
     name: "DeepSeek V4.1 Flash",
     vendor: "DeepSeek · Free",
@@ -15,7 +27,7 @@ export const MODEL_OPTIONS: ModelInfo[] = [
     reasoning: true,
     vision: true,
     free: true,
-    recommended: true,
+    recommended: false,
     available: true,
   },
   {

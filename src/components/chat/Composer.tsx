@@ -244,7 +244,7 @@ export default function Composer({
         </div>
       </div>
       <p className="composer-disclaimer">
-        Aurora can make mistakes. Verify important details. History stays in this browser.
+        Aurora can make mistakes. Verify important details.
       </p>
     </div>
   );

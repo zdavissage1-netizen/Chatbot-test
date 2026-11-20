@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import Logo from "@/components/ui/Logo";
 import ThemeToggle from "@/components/ui/ThemeToggle";
@@ -21,6 +21,8 @@ import {
   ZapIcon,
 } from "@/components/ui/icons";
 import { MODEL_OPTIONS } from "@/lib/chat";
+import { useModels } from "@/hooks/useModels";
+import type { ModelInfo } from "@/lib/types";
 
 const FEATURES = [
   {
@@ -69,8 +71,8 @@ const STEPS = [
   },
   {
     number: "02",
-    title: "Pick a free model",
-    text: "Start with DeepSeek V4.1 Flash or switch models mid-thread from the header picker.",
+    title: "Pick a model",
+    text: "Start with the recommended model or switch to any available model mid-thread from the header picker.",
   },
   {
     number: "03",
@@ -79,24 +81,23 @@ const STEPS = [
   },
 ];
 
-const MARQUEE_ITEMS = [
-  ...MODEL_OPTIONS.map((model) => ({ icon: SparklesIcon, label: model.name })),
-  { icon: CodeIcon, label: "Color code blocks" },
-  { icon: LockIcon, label: "Local history" },
-  { icon: DownloadIcon, label: "One-click export" },
-  { icon: BrainIcon, label: "Visible reasoning" },
-  { icon: ZapIcon, label: "Live streaming" },
-];
-
 const FOOTER_FEATURES = [
   "Streaming replies",
   "Markdown rendering",
   "Color code blocks",
   "Reasoning traces",
   "Attachments",
-  "Local history",
+  "Session conversations",
   "Markdown export",
   "JSON export",
+];
+
+const CAPABILITY_ITEMS = [
+  { icon: CodeIcon, label: "Color code blocks" },
+  { icon: LockIcon, label: "Session-only history" },
+  { icon: DownloadIcon, label: "One-click export" },
+  { icon: BrainIcon, label: "Visible reasoning" },
+  { icon: ZapIcon, label: "Live streaming" },
 ];
 
 function useLandingMotion(rootRef: React.RefObject<HTMLDivElement | null>) {
@@ -205,6 +206,25 @@ export default function LandingPage() {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const { progress, scrolled } = useLandingMotion(rootRef);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { models } = useModels();
+
+  const displayModels = useMemo<ModelInfo[]>(() => {
+    const filtered = models.filter((model) => model.id !== "aurora-demo");
+    return filtered.length ? filtered : MODEL_OPTIONS;
+  }, [models]);
+
+  const marqueeItems = useMemo(
+    () => [
+      ...displayModels.slice(0, 12).map((model) => ({ icon: SparklesIcon, label: model.name })),
+      ...CAPABILITY_ITEMS,
+    ],
+    [displayModels],
+  );
+
+  const modelCards = useMemo(
+    () => (displayModels.length <= 6 ? displayModels : displayModels.slice(0, 6)),
+    [displayModels],
+  );
 
   const closeMenu = () => setMenuOpen(false);
 
@@ -265,7 +285,7 @@ export default function LandingPage() {
           <div className="landing-hero-copy">
             <span className="landing-badge landing-enter" style={{ animationDelay: "40ms" }}>
               <span className="landing-badge-dot" />
-              Local-first · Free models · Live streaming
+              Local-first · All available models · Live streaming
             </span>
             <h1 className="landing-enter" style={{ animationDelay: "110ms" }}>
               A calmer place to
@@ -274,7 +294,7 @@ export default function LandingPage() {
             </h1>
             <p className="landing-lede landing-enter" style={{ animationDelay: "180ms" }}>
               Aurora pairs a distraction-free workspace with beautiful Markdown, highlighted code,
-              visible reasoning, and history that never leaves your browser.
+              visible reasoning, and access to the full lineup of available models.
             </p>
             <div className="landing-hero-actions landing-enter" style={{ animationDelay: "250ms" }}>
               <Link className="btn primary large landing-cta" href="/new" data-ripple>
@@ -292,12 +312,12 @@ export default function LandingPage() {
             </p>
             <dl className="landing-stats landing-enter" style={{ animationDelay: "370ms" }}>
               <div>
-                <dt>4</dt>
-                <dd>free models</dd>
+                <dt>{displayModels.length}</dt>
+                <dd>available models</dd>
               </div>
               <div>
                 <dt>100%</dt>
-                <dd>local history</dd>
+                <dd>in-session workspace</dd>
               </div>
               <div>
                 <dt>0</dt>
@@ -315,7 +335,7 @@ export default function LandingPage() {
                   <i /><i /><i />
                 </span>
                 <span className="landing-window-title">New conversation</span>
-                <span className="landing-model-pill">DeepSeek V4.1 Flash</span>
+                <span className="landing-model-pill">{displayModels[0]?.name ?? "Model"}</span>
               </div>
               <div className="landing-window-body">
                 <div className="landing-bubble user">
@@ -373,7 +393,7 @@ export default function LandingPage() {
           <div className="landing-marquee-track">
             {[0, 1].map((group) => (
               <div className="landing-marquee-group" key={group} aria-hidden={group === 1}>
-                {MARQUEE_ITEMS.map((item, index) => {
+                {marqueeItems.map((item, index) => {
                   const Icon = item.icon;
                   return (
                     <span className="landing-marquee-item" key={`${item.label}-${index}`}>
@@ -440,24 +460,24 @@ export default function LandingPage() {
 
         <section className="landing-section landing-models" id="models">
           <div className="landing-models-copy" data-reveal>
-            <span className="landing-kicker">Free to start</span>
-            <h2>DeepSeek models, ready out of the box.</h2>
+            <span className="landing-kicker">All models</span>
+            <h2>Use the full lineup of available models.</h2>
             <p>
-              The default lineup runs through LiteRouter. Switch models from the chat header at any
-              time; the conversation and your local history stay exactly where they are.
+              Aurora loads the models available from your provider so you can pick the right one for
+              each task. Switch models from the chat header at any time within the same conversation.
             </p>
             <ul className="landing-check-list">
-              <li><CheckIcon size={15} />1M-token context on the V4.1 family</li>
-              <li><CheckIcon size={15} />Visible reasoning traces when available</li>
-              <li><CheckIcon size={15} />Vision-ready image attachments</li>
+              <li><CheckIcon size={15} />Browse and search all available models in chat</li>
+              <li><CheckIcon size={15} />Visible reasoning traces when supported</li>
+              <li><CheckIcon size={15} />Vision-ready image attachments on supported models</li>
             </ul>
             <Link className="btn primary large landing-cta" href="/new" data-ripple>
-              Try a free model
+              Try a model
               <ArrowUpRightIcon size={17} />
             </Link>
           </div>
           <div className="landing-model-stack">
-            {MODEL_OPTIONS.map((model, index) => (
+            {modelCards.map((model, index) => (
               <article
                 className={`landing-model-card${model.recommended ? " is-recommended" : ""}`}
                 key={model.id}
@@ -473,12 +493,12 @@ export default function LandingPage() {
                   {model.recommended ? (
                     <span className="landing-model-badge">Recommended</span>
                   ) : (
-                    <span className="landing-model-badge quiet">Free</span>
+                    <span className="landing-model-badge quiet">{model.free ? "Free" : "Model"}</span>
                   )}
                 </div>
-                <p>{model.description}</p>
+                <p>{model.description || "Available through your configured provider."}</p>
                 <div className="landing-model-meta">
-                  <span>1M context</span>
+                  {model.context ? <span>{Math.round(model.context / 1000)}k context</span> : <span>Context varies</span>}
                   {model.reasoning ? <span>Reasoning</span> : null}
                   {model.vision ? <span>Vision</span> : null}
                 </div>
@@ -566,7 +586,7 @@ export default function LandingPage() {
           </div>
           <div className="landing-footer-col">
             <h3>Models</h3>
-            {MODEL_OPTIONS.map((model) => (
+            {displayModels.slice(0, 8).map((model) => (
               <a href="#models" key={model.id}>{model.name}</a>
             ))}
           </div>
